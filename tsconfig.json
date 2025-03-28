@@ -1,0 +1,29 @@
+{
+	"compilerOptions": {
+		"target": "es3",
+		"strict": true,
+		"outFile": "dist/Film Look.jsx",
+		"noEmitHelpers": true,
+		"noLib": true,
+		"allowJs": true,
+		"forceConsistentCasingInFileNames": true,
+		"types": ["types-for-adobe/AfterEffects/23.0"],
+		"typeRoots": ["node_modules/@types", "node_modules/@types-for-adobe"],
+		"skipLibCheck": true
+	},
+	// "include": ["src/*.ts"],
+	"files": [
+		"src/debug.ts",
+		"src/utils.ts",
+		"src/1. Color Correction.ts",
+		"src/2. Grain.ts",
+		"src/3. Damage.ts",
+		"src/4. Blobs.ts",
+		"src/5. Scratches.ts",
+		"src/6. Dust.ts",
+		"src/7. Gate Weave.ts",
+		"src/8. Light Leaks.ts",
+		"src/9. Flicker.ts",
+		"src/main.ts"
+	]
+}
