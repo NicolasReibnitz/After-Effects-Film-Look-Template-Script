@@ -3,7 +3,8 @@
 	"version": "1.0.0",
 	"description": "TypeScript to ExtendScript boilerplate for Adobe After Effects scripting",
 	"scripts": {
-		"build": "tsc"
+		"build": "tsc",
+		"watch": "tsc --watch"
 	},
 	"devDependencies": {
 		"@das.laboratory/eslint-config-interactive-ts": "^0.2.0",
