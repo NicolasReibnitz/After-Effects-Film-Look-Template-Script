@@ -19,8 +19,8 @@ namespace _ColorCorrection {
 		/* === Levels === */
 
 		const levels = layer.effect.addProperty('ADBE Easy Levels2');
-		Utils.setEffectProp(levels, 'Output Black', 0.05);
-		Utils.setEffectProp(levels, 'Output White', 0.95);
+		Utils.setEffectProp(levels, 'Output Black', 0.030517578125);
+		Utils.setEffectProp(levels, 'Output White', 0.91552734375);
 
 		// app.endUndoGroup();
 	}

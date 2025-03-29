@@ -1,5 +1,5 @@
 // Add Grain FX to the "Grain" layer in the active comp
-namespace _Grain {
+namespace _GrainNewsReel {
 	export function applyEffects(layer: AVLayer) {
 		// app.beginUndoGroup('Apply Grain FX');
 
@@ -12,15 +12,15 @@ namespace _Grain {
 		/* === GAUSSIAN BLUR === */
 
 		const blur = layer.effect.addProperty('ADBE Gaussian Blur 2');
-		Utils.setEffectProp(blur, 'Blurriness', 10);
+		Utils.setEffectProp(blur, 'Blurriness', 17);
 		Utils.setEffectProp(blur, 'Repeat Edge Pixels', true);
 
 		/* === UNSHARP MASK === */
 
 		const unsharp = layer.effect.addProperty('ADBE Unsharp Mask2');
-		Utils.setEffectProp(unsharp, 'Amount', 300);
+		Utils.setEffectProp(unsharp, 'Amount', 500);
 		// Utils.setEffectProp(unsharp, 'Radius', 3);
-		Utils.setEffectProp(unsharp, 'Radius', 6);
+		Utils.setEffectProp(unsharp, 'Radius', 7);
 
 		// app.endUndoGroup();
 	}

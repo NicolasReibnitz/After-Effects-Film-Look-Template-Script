@@ -1,21 +1,24 @@
 let setEffectPropEnabled = false;
-const file = new File('~/Documents/list-of-set-properties.tsv');
-const columns = [];
-columns.push('Layer Name');
-columns.push('Effect Name');
-columns.push('Property Name');
-columns.push('Default Property Value');
-columns.push('New Property Value');
-columns.push('Is Expression');
-columns.push('Default Expression');
-columns.push('New Expression');
-
-if (file.open('w')) {
-	file.writeln(columns.join('\t'));
-	file.close();
-}
 
 namespace Utils {
+	export function initListOfSetPropertiesFile(): void {
+		const file = new File('~/Documents/list-of-set-properties.tsv');
+		file.encoding = 'UTF8';
+
+		const columns = [];
+		columns.push('Layer Name');
+		columns.push('Effect Name');
+		columns.push('Property Name');
+		columns.push('Default Property Value');
+		columns.push('New Property Value');
+		columns.push('Is Expression');
+
+		if (file.open('w')) {
+			file.writeln(columns.join('\t'));
+			file.close();
+		}
+	}
+
 	export function getPropertyTypeName(typeNum: number): string {
 		switch (typeNum) {
 			case PropertyType.PROPERTY:
@@ -30,15 +33,25 @@ namespace Utils {
 	}
 
 	export function logEffectProp(effect: _PropertyClasses, name: string, value: unknown, isExpression?: boolean) {
+		const file = new File('~/Documents/list-of-set-properties.tsv');
+		file.encoding = 'UTF8';
+
 		const columns = [];
+		let defaultPropValue;
+
 		const isEffect = effect.isEffect;
-		const layerName = isEffect ? effect.parentProperty.parentProperty.name : effect.name || '';
+		const layerName = isEffect
+			? effect.parentProperty.parentProperty.name.replace(/^# /g, '')
+			: effect.name.replace(/^# /g, '') || '';
 		const effectName = isEffect ? effect.name : '';
 		const prop = (effect as PropertyGroup).property(name) as Property;
-		const defaultPropValue = prop.value;
-		const propValue = isExpression ? '' : value;
-		const propExpression = isExpression ? (value as string).replace(/\r?\n/g, ' ') : '';
-		const defaultExpression = prop.expressionEnabled ? prop.expression.replace(/\r?\n/g, ' ') : '';
+		const propValue = isExpression ? (value as string).replace(/(\r\n|\r|\n)/g, ' ') : value;
+
+		if (isExpression) {
+			defaultPropValue = prop.expressionEnabled ? prop.expression.replace(/(\r\n|\r|\n)/g, ' ') : '';
+		} else {
+			defaultPropValue = prop.value;
+		}
 
 		columns.push(layerName); // Layer Name
 		columns.push(effectName); // Effect Name
@@ -46,8 +59,6 @@ namespace Utils {
 		columns.push(defaultPropValue); // Property Value Before
 		columns.push(propValue); // Property Value After
 		columns.push(isExpression ? 'true' : 'false'); // Property Expression
-		columns.push(defaultExpression); // Default Expression
-		columns.push(propExpression); // New Expression
 
 		if (file.open('a')) {
 			file.writeln(columns.join('\t'));
@@ -55,27 +66,18 @@ namespace Utils {
 		}
 	}
 
-	export function cleanProject(compName: string) {
+	export function cleanProject(compNamePrefix: string) {
 		const trash = [];
-		if (file.open('a')) {
-			for (let i = 1; i <= app.project.items.length; i++) {
-				const itemName = app.project.item(i).name;
-				// file.writeln(itemName);
-				if (itemName === compName || itemName.substring(0, 2) === '# ') {
-					trash.push(app.project.item(i));
-					// app.project.item(i).remove();
-					// file.writeln(itemName + ' removed from project.');
-				}
-				//  else {
-				// 	file.writeln(itemName);
-				// }
-			}
 
-			for (let j = 0; j < trash.length; j++) {
-				file.writeln(trash[j].name);
-				trash[j].remove();
+		for (let i = 1; i <= app.project.items.length; i++) {
+			const itemName = app.project.item(i).name;
+			if (itemName.indexOf(compNamePrefix) === 0 || itemName.indexOf('# ') === 0) {
+				trash.push(app.project.item(i));
 			}
-			file.close();
+		}
+
+		for (let j = 0; j < trash.length; j++) {
+			trash[j].remove();
 		}
 	}
 
@@ -138,6 +140,11 @@ namespace Utils {
 		const postfix = setEffectPropEnabled ? comp.name : comp.name + '-defaults';
 		const file = new File('~/Documents/list-of-layer-effects-' + postfix + '.txt');
 		const file2 = new File('~/Documents/list-of-layer-effects-' + postfix + '.tsv');
+		file.encoding = 'UTF8';
+		file2.encoding = 'UTF8';
+		file.lineFeed = 'Unix';
+		file2.lineFeed = 'Unix';
+
 		const columns = [];
 
 		let layersList = '';
@@ -191,7 +198,7 @@ namespace Utils {
 							columns.push(propValue?.toString());
 							columns.push(typeof propValue);
 							columns.push(Utils.getPropertyTypeName(prop.propertyType));
-							columns.push(prop.expressionEnabled ? prop.expression.replace(/\r?\n/g, ' ') : '');
+							columns.push(prop.expressionEnabled ? prop.expression.replace(/(\r\n|\r|\n)/g, ' ') : '');
 
 							const result =
 								'		' +
@@ -237,5 +244,39 @@ namespace Utils {
 		} else {
 			alert('Could not open file for writing.' + '\n' + file.fullName);
 		}
+	}
+
+	export function importPsdToComp() {
+		const comp = app.project.activeItem;
+		if (!(comp instanceof CompItem)) {
+			alert('Please select a composition.');
+			return;
+		}
+
+		// 1. Choose a PSD file
+		const psdFile = File.openDialog('Select a PSD file to import', '*.psd', false);
+
+		if (!psdFile || !(psdFile instanceof File)) {
+			alert('Please select a single PSD file.');
+			return;
+		}
+
+		app.beginUndoGroup('Import PSD and Add as First Layer');
+
+		// 2. Import the file into the project
+		const importOptions = new ImportOptions(psdFile);
+
+		if (!importOptions.canImportAs(ImportAsType.FOOTAGE)) {
+			alert('This PSD cannot be imported as footage.');
+			return;
+		}
+		importOptions.importAs = ImportAsType.FOOTAGE;
+		const imported = app.project.importFile(importOptions) as FootageItem;
+
+		// 3. Add it as the first layer in the comp
+		const newLayer = comp.layers.add(imported);
+		newLayer.moveToEnd(); // This makes it layer 1
+
+		app.endUndoGroup();
 	}
 }
