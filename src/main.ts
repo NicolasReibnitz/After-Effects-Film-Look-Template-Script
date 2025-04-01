@@ -1,11 +1,14 @@
 // 4K 4:3 Film Look Template
-const compNamePrefix = 'FilmLook_4K_4x3_';
 const compWidth = 2880;
 const compHeight = 2160;
 const compDuration = 30;
 const compFrameRate = 24;
 
 (function (thisObj) {
+	createUIPanel(thisObj);
+})(this);
+
+function createUIPanel(thisObj: typeof globalThis) {
 	const win =
 		thisObj instanceof Panel ? thisObj : new Window('palette', 'AE Utils Panel', undefined, { resizeable: true });
 
@@ -14,74 +17,37 @@ const compFrameRate = 24;
 
 	const btnGenerateFilmLook = win.add('button', undefined, 'Generate Film Look Comp');
 	btnGenerateFilmLook.onClick = function () {
-		if (typeof createFilmLookTemplate === 'function') {
-			createFilmLookTemplate('Film Look', true);
-		} else {
-			alert('createFilmLookTemplate() is not defined.');
-		}
+		createFilmLookTemplate('Film Look', true);
 	};
 
 	const btnGenerateNewsReel = win.add('button', undefined, 'Generate News Reel Comp');
 	btnGenerateNewsReel.onClick = function () {
-		if (typeof createFilmLookTemplate === 'function') {
-			createFilmLookTemplate('News Reel', true);
-		} else {
-			alert('createFilmLookTemplate() is not defined.');
-		}
+		createFilmLookTemplate('News Reel', true);
 	};
 
 	const btnGenerateTexturelabs = win.add('button', undefined, 'Generate Texturelabs Comp');
 	btnGenerateTexturelabs.onClick = function () {
-		if (typeof createFilmLookTemplate === 'function') {
-			createFilmLookTemplate('Texturelabs', true);
-		} else {
-			alert('createFilmLookTemplate() is not defined.');
-		}
+		createFilmLookTemplate('Texturelabs', true);
 	};
 
 	const btnGenerateFilmLookDefaults = win.add('button', undefined, 'Generate Film Look Comp (defaults)');
 	btnGenerateFilmLookDefaults.onClick = function () {
-		if (typeof createFilmLookTemplate === 'function') {
-			createFilmLookTemplate('Film Look', false);
-		} else {
-			alert('createFilmLookTemplate() is not defined.');
-		}
+		createFilmLookTemplate('Film Look', false);
 	};
 
 	const btnCleanProject = win.add('button', undefined, 'Clean Project');
 	btnCleanProject.onClick = function () {
-		if (typeof Utils.cleanProject === 'function') {
-			Utils.cleanProject(compNamePrefix);
-		} else {
-			alert('cleanProject() is not defined.');
-		}
+		Utils.cleanProject();
 	};
 
-	const btnListLayerEffectsTexturelabs = win.add('button', undefined, 'List Layer Effects (Texturelabs)');
+	const btnListLayerEffectsTexturelabs = win.add('button', undefined, 'List Layer Effects');
 	btnListLayerEffectsTexturelabs.onClick = function () {
-		if (typeof listLayerEffectsTexturelabs === 'function') {
-			listLayerEffectsTexturelabs('Texturelabs');
-		} else {
-			alert('listLayerEffectsTexturelabs() is not defined.');
-		}
-	};
-
-	const btnListLayerEffectsFilmLook = win.add('button', undefined, 'List Layer Effects (FilmLook)');
-	btnListLayerEffectsFilmLook.onClick = function () {
-		if (typeof listLayerEffectsTexturelabs === 'function') {
-			listLayerEffectsTexturelabs('FilmLook');
-		} else {
-			alert('listLayerEffectsTexturelabs() is not defined.');
-		}
+		Utils.listLayerEffectsOfAllComps();
 	};
 
 	const btnImportPsdToComp = win.add('button', undefined, 'Import PSD to Comp');
 	btnImportPsdToComp.onClick = function () {
-		if (typeof listLayerEffectsTexturelabs === 'function') {
-			Utils.importPsdToComp();
-		} else {
-			alert('importPsdToComp() is not defined.');
-		}
+		Utils.importPsdToComp();
 	};
 
 	win.layout.layout(true);
@@ -90,75 +56,123 @@ const compFrameRate = 24;
 		win.center();
 		win.show();
 	}
-})(this);
+}
 
 function createFilmLookTemplate(style: string, setEffectProps: boolean) {
+	let footagePlaceholder: AVLayer;
+	let colorCorrectionLayer: AVLayer;
+	let grain: AVLayer;
+	let damage: AVLayer;
+	let blobs: AVLayer;
+	let scratches: AVLayer;
+	let dust: AVLayer;
+	let gateWeave: AVLayer;
+	let lightLeaks: AVLayer;
+	let flicker: AVLayer;
+
 	Utils.enableSetEffectProp(setEffectProps);
 	Utils.initListOfSetPropertiesFile();
 
 	app.beginUndoGroup('Create Film Look Template');
 
-	const comp = app.project.items.addComp(getCompName(style), compWidth, compHeight, 1, compDuration, compFrameRate);
-
-	/* === FOOTAGE PLACEHOLDER === */
-
-	const footagePlaceholder = Utils.addSolid(
-		comp,
-		'Footage Placeholder',
-		[1, 1, 1],
+	const comp = app.project.items.addComp(
+		Utils.getCompName(style),
 		compWidth,
 		compHeight,
-		null,
-		false
+		1,
+		compDuration,
+		compFrameRate
 	);
-	footagePlaceholder.enabled = false;
 
-	/* === COLOR CORRECTION === */
+	if (style === 'Texturelabs') {
+		/* === FOOTAGE PLACEHOLDER === */
 
-	const colorCorrectionLayer = Utils.addSolid(comp, 'Color Correction', [1, 1, 1], compWidth, compHeight, null, true);
+		footagePlaceholder = Utils.addSolid(comp, 'Footage Placeholder', [1, 1, 1], compWidth, compHeight, null, false);
+		footagePlaceholder.enabled = false;
 
-	/* === GRAIN === */
+		/* === LIGHT LEAKS === */
 
-	const grain = Utils.addSolid(comp, 'Grain', [1, 1, 1], compWidth, compHeight, null, true);
+		lightLeaks = Utils.addSolid(comp, 'Light Leaks', [1, 1, 1], compWidth, compHeight, BlendingMode.SCREEN, false);
+		Utils.setEffectProp(lightLeaks, 'Opacity', 33);
 
-	/* === DAMAGE === */
+		/* === COLOR CORRECTION === */
 
-	const damage = Utils.addSolid(comp, 'Damage', [1, 1, 1], compWidth, compHeight, BlendingMode.HARD_LIGHT, false);
+		colorCorrectionLayer = Utils.addSolid(comp, 'Color Correction', [1, 1, 1], compWidth, compHeight, null, true);
 
-	/* === BLOBS === */
+		/* === FLICKER === */
 
-	const blobs = Utils.addSolid(comp, 'Blobs', [1, 1, 1], compWidth, compHeight, BlendingMode.MULTIPLY, false);
+		flicker = Utils.addSolid(comp, 'Flicker', [1, 1, 1], compWidth, compHeight, null, true);
 
-	/* === SCRATCHES === */
+		/* === DUST === */
 
-	const scratches = Utils.addSolid(comp, 'Scratches', [0, 0, 0], compWidth, compHeight, BlendingMode.MULTIPLY, false);
-	Utils.setEffectProp(scratches, 'Scale', [100, 4000]);
+		dust = Utils.addSolid(comp, 'Dust', [1, 1, 1], compWidth, compHeight, BlendingMode.NORMAL, false);
+		Utils.setEffectProp(dust, 'Scale', [200, 200]);
 
-	/* === DUST === */
+		/* === DAMAGE === */
 
-	const dust = Utils.addSolid(comp, 'Dust', [1, 1, 1], compWidth, compHeight, BlendingMode.NORMAL, false);
-	Utils.setEffectProp(dust, 'Scale', [200, 200]);
+		damage = Utils.addSolid(comp, 'Damage', [1, 1, 1], compWidth, compHeight, BlendingMode.HARD_LIGHT, false);
 
-	/* === GATE WEAVE === */
+		/* === BLOBS === */
 
-	const gateWeave = Utils.addSolid(comp, 'Gate Weave', [1, 1, 1], compWidth, compHeight, null, true);
+		blobs = Utils.addSolid(comp, 'Blobs', [1, 1, 1], compWidth, compHeight, BlendingMode.MULTIPLY, false);
 
-	/* === LIGHT LEAKS === */
+		/* === SCRATCHES === */
 
-	const lightLeaks = Utils.addSolid(
-		comp,
-		'Light Leaks',
-		[1, 1, 1],
-		compWidth,
-		compHeight,
-		BlendingMode.SCREEN,
-		false
-	);
-	Utils.setEffectProp(lightLeaks, 'Opacity', 33);
+		scratches = Utils.addSolid(comp, 'Scratches', [0, 0, 0], compWidth, compHeight, BlendingMode.MULTIPLY, false);
+		Utils.setEffectProp(scratches, 'Scale', [100, 4000]);
 
-	/* === FLICKER === */
+		/* === GRAIN === */
 
-	const flicker = Utils.addSolid(comp, 'Flicker', [1, 1, 1], compWidth, compHeight, null, true);
+		grain = Utils.addSolid(comp, 'Grain', [1, 1, 1], compWidth, compHeight, null, true);
+
+		/* === GATE WEAVE === */
+
+		gateWeave = Utils.addSolid(comp, 'Gate Weave', [1, 1, 1], compWidth, compHeight, null, true);
+	} else {
+		/* === FOOTAGE PLACEHOLDER === */
+
+		footagePlaceholder = Utils.addSolid(comp, 'Footage Placeholder', [1, 1, 1], compWidth, compHeight, null, false);
+		footagePlaceholder.enabled = false;
+
+		/* === COLOR CORRECTION === */
+
+		colorCorrectionLayer = Utils.addSolid(comp, 'Color Correction', [1, 1, 1], compWidth, compHeight, null, true);
+
+		/* === GRAIN === */
+
+		grain = Utils.addSolid(comp, 'Grain', [1, 1, 1], compWidth, compHeight, null, true);
+
+		/* === DAMAGE === */
+
+		damage = Utils.addSolid(comp, 'Damage', [1, 1, 1], compWidth, compHeight, BlendingMode.HARD_LIGHT, false);
+
+		/* === BLOBS === */
+
+		blobs = Utils.addSolid(comp, 'Blobs', [1, 1, 1], compWidth, compHeight, BlendingMode.MULTIPLY, false);
+
+		/* === SCRATCHES === */
+
+		scratches = Utils.addSolid(comp, 'Scratches', [0, 0, 0], compWidth, compHeight, BlendingMode.MULTIPLY, false);
+		Utils.setEffectProp(scratches, 'Scale', [100, 4000]);
+
+		/* === DUST === */
+
+		dust = Utils.addSolid(comp, 'Dust', [1, 1, 1], compWidth, compHeight, BlendingMode.NORMAL, false);
+		Utils.setEffectProp(dust, 'Scale', [200, 200]);
+
+		/* === GATE WEAVE === */
+
+		gateWeave = Utils.addSolid(comp, 'Gate Weave', [1, 1, 1], compWidth, compHeight, null, true);
+
+		/* === LIGHT LEAKS === */
+
+		lightLeaks = Utils.addSolid(comp, 'Light Leaks', [1, 1, 1], compWidth, compHeight, BlendingMode.SCREEN, false);
+		Utils.setEffectProp(lightLeaks, 'Opacity', 33);
+
+		/* === FLICKER === */
+
+		flicker = Utils.addSolid(comp, 'Flicker', [1, 1, 1], compWidth, compHeight, null, true);
+	}
 
 	app.endUndoGroup();
 
@@ -195,16 +209,4 @@ function createFilmLookTemplate(style: string, setEffectProps: boolean) {
 	}
 
 	Utils.listLayerEffects(comp);
-}
-
-function getCompName(style: string) {
-	return compNamePrefix + style.replace(' ', '_');
-}
-
-function listLayerEffectsTexturelabs(compName: string) {
-	for (let i = 1; i <= app.project.items.length; i++) {
-		if (app.project.item(i).name.indexOf(compName) === 0) {
-			Utils.listLayerEffects(app.project.item(i) as CompItem);
-		}
-	}
 }

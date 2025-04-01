@@ -19,6 +19,10 @@ namespace Utils {
 		}
 	}
 
+	export function getCompName(style: string) {
+		return 'Generated_' + style.replace(' ', '_') + '_Comp';
+	}
+
 	export function getPropertyTypeName(typeNum: number): string {
 		switch (typeNum) {
 			case PropertyType.PROPERTY:
@@ -66,12 +70,20 @@ namespace Utils {
 		}
 	}
 
-	export function cleanProject(compNamePrefix: string) {
+	export function listLayerEffectsOfAllComps() {
+		for (let i = 1; i <= app.project.items.length; i++) {
+			if (app.project.item(i).typeName === 'Composition') {
+				Utils.listLayerEffects(app.project.item(i) as CompItem);
+			}
+		}
+	}
+
+	export function cleanProject() {
 		const trash = [];
 
 		for (let i = 1; i <= app.project.items.length; i++) {
 			const itemName = app.project.item(i).name;
-			if (itemName.indexOf(compNamePrefix) === 0 || itemName.indexOf('# ') === 0) {
+			if (itemName.indexOf('Generated_') === 0 || itemName.indexOf('# ') === 0) {
 				trash.push(app.project.item(i));
 			}
 		}
@@ -170,7 +182,7 @@ namespace Utils {
 					const layer = comp.layer(layerIndex);
 					const effects = layer.property('Effects') as PropertyGroup;
 					let effectsList = '';
-					layersList += layerIndex + '. ' + layer.name + '\n';
+					layersList += layerIndex + '. ' + layer.name.replace(/^# /g, '') + '\n';
 
 					for (let effectIndex = 1; effectIndex <= effects.numProperties; effectIndex++) {
 						const effect = effects.property(effectIndex) as PropertyGroup;
@@ -188,7 +200,7 @@ namespace Utils {
 							currentProp = layer.name + '>' + effect.matchName + '>' + prop.matchName;
 
 							columns.length = 0;
-							columns.push(layer.name);
+							columns.push(layer.name.replace(/^# /g, ''));
 							columns.push(effectIndex.toString());
 							columns.push(effect.name);
 							columns.push(effect.matchName);
@@ -202,7 +214,7 @@ namespace Utils {
 
 							const result =
 								'		' +
-								layer.name +
+								layer.name.replace(/^# /g, '') +
 								'.' +
 								effect.matchName +
 								'.' +
@@ -217,7 +229,9 @@ namespace Utils {
 								typeof propValue +
 								') [' +
 								prop.propertyType +
-								']\n';
+								'] ' +
+								(prop.expressionEnabled ? prop.expression.replace(/(\r\n|\r|\n)/g, ' ') : '') +
+								'\n';
 
 							file2.writeln(columns.join('\t'));
 
