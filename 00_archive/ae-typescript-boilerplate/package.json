@@ -1,0 +1,14 @@
+{
+	"name": "ae-typescript-script",
+	"version": "1.0.0",
+	"description": "TypeScript to ExtendScript boilerplate for Adobe After Effects scripting",
+	"scripts": {
+		"build": "tsc"
+	},
+	"devDependencies": {
+		"@das.laboratory/eslint-config-interactive-ts": "^0.2.0",
+		"@das.laboratory/prettier-config-interactive": "^2.1.1",
+		"types-for-adobe": "^7.2.2",
+		"typescript": "^4.9.5"
+	}
+}

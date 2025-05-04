@@ -1,9 +1,24 @@
 "use strict";
 var setEffectPropEnabled = false;
+var LOG_FOLDER_PATH = '~/Documents/FilmLookGenerator';
+var LOG_FOLDER = new Folder(LOG_FOLDER_PATH);
+if (!LOG_FOLDER.exists) {
+    var success = LOG_FOLDER.create();
+    if (!success) {
+        alert('Failed to create folder!');
+    }
+}
 var Utils;
 (function (Utils) {
     function initListOfSetPropertiesFile() {
-        var file = new File('~/Documents/list-of-set-properties.tsv');
+        var LOG_FOLDER = new Folder(LOG_FOLDER_PATH);
+        if (!LOG_FOLDER.exists) {
+            var success = LOG_FOLDER.create();
+            if (!success) {
+                alert('Failed to create folder!');
+            }
+        }
+        var file = new File("".concat(LOG_FOLDER_PATH, "/list-of-set-properties.tsv"));
         file.encoding = 'UTF8';
         var columns = [];
         columns.push('Layer Name');
@@ -36,7 +51,14 @@ var Utils;
     }
     Utils.getPropertyTypeName = getPropertyTypeName;
     function logEffectProp(effect, name, value, isExpression) {
-        var file = new File('~/Documents/list-of-set-properties.tsv');
+        var LOG_FOLDER = new Folder(LOG_FOLDER_PATH);
+        if (!LOG_FOLDER.exists) {
+            var success = LOG_FOLDER.create();
+            if (!success) {
+                alert('Failed to create folder!');
+            }
+        }
+        var file = new File("".concat(LOG_FOLDER_PATH, "/list-of-set-properties.tsv"));
         file.encoding = 'UTF8';
         var columns = [];
         var defaultPropValue;
@@ -133,9 +155,16 @@ var Utils;
     }
     Utils.addSolid = addSolid;
     function listLayerEffects(comp) {
-        var postfix = setEffectPropEnabled ? comp.name : comp.name + '-defaults';
-        var file = new File('~/Documents/list-of-layer-effects-' + postfix + '.txt');
-        var file2 = new File('~/Documents/list-of-layer-effects-' + postfix + '.tsv');
+        var LOG_FOLDER = new Folder(LOG_FOLDER_PATH);
+        if (!LOG_FOLDER.exists) {
+            var success = LOG_FOLDER.create();
+            if (!success) {
+                alert('Failed to create folder!');
+            }
+        }
+        // const postfix = setEffectPropEnabled ? comp.name : comp.name + '-defaults';
+        var file = new File("".concat(LOG_FOLDER_PATH, "/list-of-layer-effects-") + comp.name + '.txt');
+        var file2 = new File("".concat(LOG_FOLDER_PATH, "/list-of-layer-effects-") + comp.name + '.tsv');
         file.encoding = 'UTF8';
         file2.encoding = 'UTF8';
         file.lineFeed = 'Unix';
@@ -360,7 +389,7 @@ var _FilmLook;
         // fractal.property('Contrast').setValue(200);
         Utils.setEffectProp(fractal, 'Contrast', 200);
         // fractal.property('Brightness').setValue(110);
-        Utils.setEffectProp(fractal, 'Brightness', 110);
+        Utils.setEffectProp(fractal, 'Brightness', 100);
         // fractal.property('Uniform Scaling').setValue(false);
         Utils.setEffectProp(fractal, 'Uniform Scaling', false);
         // fractal.property('Scale Width').setValue(50);
@@ -927,6 +956,7 @@ var compWidth = 2880;
 var compHeight = 2160;
 var compDuration = 30;
 var compFrameRate = 24;
+var version = '1.0.77';
 (function (thisObj) {
     createUIPanel(thisObj);
 })(this);
@@ -934,6 +964,9 @@ function createUIPanel(thisObj) {
     var win = thisObj instanceof Panel ? thisObj : new Window('palette', 'AE Utils Panel', undefined, { resizeable: true });
     win.orientation = 'column';
     win.alignChildren = 'fill';
+    win.add('statictext', undefined, "Film Look Generator \u2013 v".concat(version));
+    win.add('statictext', undefined, "v".concat(version));
+    win.add('statictext', undefined, '---------------------');
     var btnGenerateFilmLook = win.add('button', undefined, 'Generate Film Look Comp');
     btnGenerateFilmLook.onClick = function () {
         createFilmLookTemplate('Film Look', true);
@@ -982,7 +1015,10 @@ function createFilmLookTemplate(style, setEffectProps) {
     Utils.enableSetEffectProp(setEffectProps);
     Utils.initListOfSetPropertiesFile();
     app.beginUndoGroup('Create Film Look Template');
-    var comp = app.project.items.addComp(Utils.getCompName(style), compWidth, compHeight, 1, compDuration, compFrameRate);
+    var compName = Utils.getCompName(style);
+    if (!setEffectProps)
+        compName += '_(defaults)';
+    var comp = app.project.items.addComp(compName, compWidth, compHeight, 1, compDuration, compFrameRate);
     if (style === 'Texturelabs') {
         /* === FOOTAGE PLACEHOLDER === */
         footagePlaceholder = Utils.addSolid(comp, 'Footage Placeholder', [1, 1, 1], compWidth, compHeight, null, false);

@@ -136,7 +136,7 @@ namespace _FilmLook {
 		// fractal.property('Contrast').setValue(200);
 		Utils.setEffectProp(fractal, 'Contrast', 200);
 		// fractal.property('Brightness').setValue(110);
-		Utils.setEffectProp(fractal, 'Brightness', 110);
+		Utils.setEffectProp(fractal, 'Brightness', 100);
 		// fractal.property('Uniform Scaling').setValue(false);
 		Utils.setEffectProp(fractal, 'Uniform Scaling', false);
 		// fractal.property('Scale Width').setValue(50);

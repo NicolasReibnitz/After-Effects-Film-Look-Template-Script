@@ -3,6 +3,7 @@ const compWidth = 2880;
 const compHeight = 2160;
 const compDuration = 30;
 const compFrameRate = 24;
+const version = '####VERSION####';
 
 (function (thisObj) {
 	createUIPanel(thisObj);
@@ -15,6 +16,9 @@ function createUIPanel(thisObj: typeof globalThis) {
 	win.orientation = 'column';
 	win.alignChildren = 'fill';
 
+	win.add('statictext', undefined, `Film Look Generator – v${version}`);
+	win.add('statictext', undefined, `v${version}`);
+	win.add('statictext', undefined, '---------------------');
 	const btnGenerateFilmLook = win.add('button', undefined, 'Generate Film Look Comp');
 	btnGenerateFilmLook.onClick = function () {
 		createFilmLookTemplate('Film Look', true);
@@ -75,14 +79,10 @@ function createFilmLookTemplate(style: string, setEffectProps: boolean) {
 
 	app.beginUndoGroup('Create Film Look Template');
 
-	const comp = app.project.items.addComp(
-		Utils.getCompName(style),
-		compWidth,
-		compHeight,
-		1,
-		compDuration,
-		compFrameRate
-	);
+	let compName = Utils.getCompName(style);
+	if (!setEffectProps) compName += '_(defaults)';
+
+	const comp = app.project.items.addComp(compName, compWidth, compHeight, 1, compDuration, compFrameRate);
 
 	if (style === 'Texturelabs') {
 		/* === FOOTAGE PLACEHOLDER === */
