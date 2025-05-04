@@ -1,10 +1,10 @@
 {
   "name": "ae-typescript-script",
-  "version": "1.0.77",
+  "version": "1.0.78",
   "description": "TypeScript to ExtendScript boilerplate for Adobe After Effects scripting",
   "scripts": {
     "build": "tsc",
-    "watch": "node watch.mjs"
+    "watch": "node scripts/watch.mjs"
   },
   "devDependencies": {
     "@das.laboratory/eslint-config-interactive-ts": "^0.2.0",

@@ -956,7 +956,7 @@ var compWidth = 2880;
 var compHeight = 2160;
 var compDuration = 30;
 var compFrameRate = 24;
-var version = '1.0.77';
+var version = '1.0.78';
 (function (thisObj) {
     createUIPanel(thisObj);
 })(this);
